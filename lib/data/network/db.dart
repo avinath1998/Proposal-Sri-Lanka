@@ -1,7 +1,9 @@
+import 'package:proposal/exceptions/data_fetch_exception.dart';
 import 'package:proposal/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 abstract class DB {
+  Future<CurrentUser> fetchCurrentUser(String id);
   Future<ProposalUser> fetchUser(String userId);
   Future<List<ProposalUser>> fetchUsers(
       {Map<String, dynamic> query, ProposalUser lastFetchedUser});
@@ -13,6 +15,7 @@ abstract class DB {
       CurrentUser user, String toUserId);
   Future<void> saveProposalUser(CurrentUser user, String toUserId);
   Future<void> removeSavedProposalUser(CurrentUser user, String toUserId);
+  void printVersion();
 }
 
 class FirestoreDB extends DB {
@@ -70,17 +73,18 @@ class FirestoreDB extends DB {
 
   @override
   Future<List<ProposalUser>> fetchUsers(
-      {Map<String, dynamic> query, ProposalUser lastFetchedUser}) {
+      {Map<String, dynamic> query, ProposalUser lastFetchedUser}) async {
+    List<ProposalUser> users = List();
     Query firestoreQuery =
         buildFirestoreUserFetchQueryFromMap(query, lastFetchedUser);
-    firestoreQuery.getDocuments().then((dc) {
-      if (dc != null) {
-        dc.documents.forEach((dc) {
-          print(dc.documentID);
-        });
-      }
-    });
-    return null;
+    QuerySnapshot ref = await firestoreQuery.getDocuments();
+    if (ref.documents.length > 0) {
+      ref.documents.forEach((dc) {
+        ProposalUser user = ProposalUser.fromMap(dc.data, dc.documentID);
+        users.add(user);
+      });
+    }
+    return users;
   }
 
   Query buildFirestoreUserFetchQueryFromMap(
@@ -212,5 +216,17 @@ class FirestoreDB extends DB {
         break;
     }
     return time;
+  }
+
+  @override
+  void printVersion() {
+    print("1.0.0");
+  }
+
+  @override
+  Future<CurrentUser> fetchCurrentUser(String id) async {
+    DocumentSnapshot dc = await db.collection("Users").document(id).get();
+    CurrentUser user = CurrentUser.fromMap(dc.data, dc.documentID);
+    return user;
   }
 }

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:proposal/blocs/appbar/appbar_bloc.dart';
 import 'package:proposal/blocs/appbar/appbar_state.dart';
+import 'package:proposal/blocs/auth/auth_bloc.dart';
+import 'package:proposal/blocs/fetched_matched_users/fetched_matched_users_bloc.dart';
+import 'package:proposal/data/network/db.dart';
+import 'package:proposal/data/repository/proposal_data_repository.dart';
 import 'package:proposal/screens/home_tabs/explore_tab.dart';
 import 'package:proposal/screens/home_tabs/matches_tab.dart';
 import 'package:proposal/screens/home_tabs/me_tab.dart';
@@ -13,13 +17,31 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _tabCurrentIndex;
+
+  FetchedMatchedUsersBloc fetchedMatchedUsersBloc;
+  TabController _tabController;
+  PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _tabCurrentIndex = 0;
+    fetchedMatchedUsersBloc = new FetchedMatchedUsersBloc(
+        ProposalDataRepository.get(),
+        BlocProvider.of<AuthBloc>(context).currentUser);
+    _tabController = new TabController(length: 4, initialIndex: 0, vsync: this);
+    _tabController.addListener(setHomePage);
+    _pageController = new PageController();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _tabController.dispose();
+    _pageController.dispose();
   }
 
   @override
@@ -27,8 +49,31 @@ class _HomeScreenState extends State<HomeScreen> {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
         appBar: _buildCustomAppBar(screenSize),
-        body: _buildHomeTab(_tabCurrentIndex),
+        body: BlocProviderTree(
+          blocProviders: [
+            BlocProvider<FetchedMatchedUsersBloc>(
+              bloc: fetchedMatchedUsersBloc,
+            )
+          ],
+          child: PageView(
+            physics: NeverScrollableScrollPhysics(),
+            controller: _pageController,
+            onPageChanged: (int index) {
+              _setAppBarTitle(index);
+            },
+            children: <Widget>[
+              MatchesTab(),
+              ExploreTab(),
+              RequestsTab(),
+              MeTab()
+            ],
+          ),
+        ),
         bottomNavigationBar: _buildBottomNavigationBar());
+  }
+
+  void setHomePage() {
+    _pageController.jumpToPage(_tabController.index);
   }
 
   Widget _buildCustomAppBar(Size screenSize) {
@@ -50,76 +95,46 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
   }
 
-  Widget _buildHomeTab(int index) {
+  void _setAppBarTitle(int index) {
     switch (index) {
       case 0:
         BlocProvider.of<AppbarBloc>(context).changeAppBarTitlt("Matches");
-        return MatchesTab();
         break;
       case 1:
         BlocProvider.of<AppbarBloc>(context).changeAppBarTitlt("Explore");
-        return ExploreTab();
         break;
       case 2:
         BlocProvider.of<AppbarBloc>(context).changeAppBarTitlt("Requests");
-        return RequestsTab();
         break;
       case 3:
         BlocProvider.of<AppbarBloc>(context).changeAppBarTitlt("Me");
-        return MeTab();
         break;
     }
   }
 
   Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      onTap: (val) {
-        setState(() {
-          _tabCurrentIndex = val;
-        });
-      },
-      currentIndex: _tabCurrentIndex,
-      items: [
-        BottomNavigationBarItem(
-          backgroundColor: Theme.of(context).primaryColor,
-          icon: Icon(
-            Icons.home,
-            color: Theme.of(context).accentColor,
-          ),
-          title: Text(
-            'Home',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.search,
-            color: Theme.of(context).accentColor,
-          ),
-          title: Text(
-            'Explore',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        BottomNavigationBarItem(
-            icon: Icon(
-              Icons.favorite,
-              color: Theme.of(context).accentColor,
+    return Material(
+        color: Colors.white,
+        elevation: 2.0,
+        child: TabBar(
+          onTap: (val) {},
+          unselectedLabelColor: Colors.grey,
+          labelColor: Colors.pink,
+          controller: _tabController,
+          tabs: <Widget>[
+            Tab(
+              icon: Icon(Icons.home),
             ),
-            title: Text(
-              'Requests',
-              style: TextStyle(color: Colors.white),
-            )),
-        BottomNavigationBarItem(
-            icon: Icon(
-              Icons.account_circle,
-              color: Theme.of(context).accentColor,
+            Tab(
+              icon: Icon(Icons.search),
             ),
-            title: Text(
-              'Me',
-              style: TextStyle(color: Colors.white),
-            ))
-      ],
-    );
+            Tab(
+              icon: Icon(Icons.favorite),
+            ),
+            Tab(
+              icon: Icon(Icons.account_circle),
+            )
+          ],
+        ));
   }
 }

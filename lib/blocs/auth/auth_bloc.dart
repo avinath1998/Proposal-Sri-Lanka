@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:proposal/data/repository/proposal_data_repository.dart';
+import 'package:proposal/models/user.dart';
 import 'package:proposal/services/auth/auth.dart';
 import './auth.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final Auth auth;
   String currentUserId;
+  CurrentUser currentUser;
   String errorMsg;
   String _TAG = "AuthBloc: ";
   AuthBloc(this.auth);
@@ -18,7 +21,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     auth.isSignedIn().then((String val) {
       if (currentUserId != null) {
         print("$_TAG, Initial Signing In a Success: $val");
-        this.currentUserId = currentUserId;
         dispatch(SignInEvent());
       } else {
         print("$_TAG Initial Signing Failed, Signing Out State Revelead");
@@ -33,17 +35,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void signIn(String username, String password) async {
     print("$_TAG Signing In");
-    auth.signIn(username, password).then((String val) {
+    auth.signIn(username, password).then((String val) async {
       if (val != null) {
         print("$_TAG Signing in a succes: $val");
-        this.currentUserId = currentUserId;
+        this.currentUserId = val;
+        currentUser =
+            await ProposalDataRepository.get().fetchCurrentUser(currentUserId);
         dispatch(SignInEvent());
       } else {
         print("$_TAG Signing in failed");
         dispatch(SignOutEvent());
       }
     }).catchError((error) {
-      print("$_TAG, Error Signing Out: ${error.toString()}");
+      print("$_TAG, Error Signing In: ${error.toString()}");
       this.errorMsg = error.toString();
       dispatch(SigningInErrorEvent());
     });

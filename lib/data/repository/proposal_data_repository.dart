@@ -1,21 +1,38 @@
 import 'package:proposal/data/network/db.dart';
+import 'package:proposal/exceptions/data_fetch_exception.dart';
 import 'package:proposal/exceptions/no_initial_match_fetch_occured_exception.dart';
 import 'package:proposal/models/user.dart';
 
 class ProposalDataRepository {
-  final DB database;
+  DB database;
   ProposalUser _lastFetchedMatchedUser;
   ProposalUser _lastFetchedExploreUser;
 
-  ProposalDataRepository(this.database);
+  static final ProposalDataRepository _repo =
+      new ProposalDataRepository._internal();
 
+  static ProposalDataRepository get() {
+    return _repo;
+  }
+
+  ProposalDataRepository._internal() {
+    database = FirestoreDB();
+  }
+
+  Future<CurrentUser> fetchCurrentUser(String id) async {
+    print("Fetching Current User");
+    CurrentUser user = await database.fetchCurrentUser(id);
+    return user;
+  }
+
+  //Change this, the null will return first.
   Future<List<ProposalUser>> fetchMatchedUsers(CurrentUser user) async {
-    List<ProposalUser> matchedUsers = await database.fetchUsers(query: {
+    print("Repository: Fetching Users");
+    List<ProposalUser> users = await database.fetchUsers(query: {
       'religion': user.regilion,
       'nativeLanguage': user.nativeLanguage
     });
-    _lastFetchedMatchedUser = matchedUsers[matchedUsers.length - 1];
-    return matchedUsers;
+    return users;
   }
 
   Future<List<ProposalUser>> fetchNextMatchedUsers(CurrentUser user) async {
