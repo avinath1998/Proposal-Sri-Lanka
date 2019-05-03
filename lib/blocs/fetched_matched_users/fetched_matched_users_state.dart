@@ -11,11 +11,6 @@ class FetchMatchedUsersStateSuccess extends FetchedMatchedUsersState {
   FetchMatchedUsersStateSuccess(this.matches);
 }
 
-class FetchNextMatchedUsersStateSuccess extends FetchedMatchedUsersState {
-  final List<ProposalUser> matches;
-  FetchNextMatchedUsersStateSuccess(this.matches);
-}
-
 class FetchMatchUsersErrorState extends FetchedMatchedUsersState {
   final String message;
 

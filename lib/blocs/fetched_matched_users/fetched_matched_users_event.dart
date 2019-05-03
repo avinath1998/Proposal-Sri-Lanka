@@ -5,6 +5,8 @@ abstract class FetchedMatchedUsersEvent {}
 
 class FetchMatchedUsersEvent extends FetchedMatchedUsersEvent {}
 
-class FetchNextMatchedUsersEvent extends FetchedMatchedUsersEvent {}
+class FetchingMatchedUsersError extends FetchedMatchedUsersEvent {
+  final String msg;
 
-class FetchingMatchedUsersError extends FetchedMatchedUsersEvent {}
+  FetchingMatchedUsersError(this.msg);
+}

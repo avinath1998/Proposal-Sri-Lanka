@@ -128,17 +128,8 @@ class FirestoreDB extends DB {
       if (_isCurrentQueryInvolveDate) query = query.orderBy('dob');
 
       if (lastFetchedUser != null) {
-        query = query.startAfter([
-          {lastFetchedUser.id}
-        ]);
+        query = query.startAfter([lastFetchedUser.creationTime]);
       }
-      // if (map.containsKey("startAfter")) {
-      //   if (map.containsKey("startAfterDob")) {
-      //     query = query.startAfter([map['startAfterDob'], lastFetchedUser.dob]);
-      //   } else {
-      //     query = query.startAfter([map["startAfter"]]);
-      //   }
-      // }
       query = query.orderBy('creationTime');
     }
     return query.limit(10);

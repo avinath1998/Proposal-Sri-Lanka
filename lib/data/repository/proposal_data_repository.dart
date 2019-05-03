@@ -7,6 +7,8 @@ class ProposalDataRepository {
   DB database;
   ProposalUser _lastFetchedMatchedUser;
   ProposalUser _lastFetchedExploreUser;
+  final String _tag = "ProposalDataRepository: ";
+  final List<ProposalUser> _fetchedUsers = List();
 
   static final ProposalDataRepository _repo =
       new ProposalDataRepository._internal();
@@ -21,31 +23,46 @@ class ProposalDataRepository {
 
   Future<CurrentUser> fetchCurrentUser(String id) async {
     print("Fetching Current User");
-    CurrentUser user = await database.fetchCurrentUser(id);
-    return user;
+    try {
+      CurrentUser user = await database.fetchCurrentUser(id);
+      return user;
+    } catch (e) {
+      throw DataFetchException(e.toString());
+    }
   }
 
   //Change this, the null will return first.
   Future<List<ProposalUser>> fetchMatchedUsers(CurrentUser user) async {
-    print("Repository: Fetching Users");
-    List<ProposalUser> users = await database.fetchUsers(query: {
-      'religion': user.regilion,
-      'nativeLanguage': user.nativeLanguage
-    });
-    return users;
-  }
+    print("$_tag fetching matched users");
+    try {
+      List<ProposalUser> users = new List();
+      if (_lastFetchedMatchedUser == null) {
+        print("$_tag fetching initial set of matched users");
+        users = await database.fetchUsers(query: {
+          'religion': user.regilion,
+          'nativeLanguage': user.nativeLanguage
+        });
+      } else {
+        print("$_tag fetching next set of matched users");
+        users = await database.fetchUsers(query: {
+          'religion': user.regilion,
+          'nativeLanguage': user.nativeLanguage
+        }, lastFetchedUser: _lastFetchedMatchedUser);
+      }
 
-  Future<List<ProposalUser>> fetchNextMatchedUsers(CurrentUser user) async {
-    if (_lastFetchedMatchedUser == null) {
-      throw new NoInitialMatchFetchOccuredException(
-          "Initial Matches Fetch hasn't occured yet, cannot fetch next matched users.");
-    } else {
-      List<ProposalUser> matchedUsers = await database.fetchUsers(query: {
-        'religion': user.regilion,
-        'nativeLanguage': user.nativeLanguage
-      }, lastFetchedUser: _lastFetchedMatchedUser);
-      _lastFetchedMatchedUser = matchedUsers[matchedUsers.length - 1];
-      return matchedUsers;
+      if (users.length > 0) {
+        _lastFetchedMatchedUser = users[users.length - 1];
+      }
+
+      users.forEach((user) {
+        user.isMatch = true;
+        _fetchedUsers.add(user);
+        print("$_tag Added: " + user.firstName);
+      });
+
+      return _fetchedUsers.where((user) => user.isMatch).toList();
+    } catch (e) {
+      throw DataFetchException(e.toString());
     }
   }
 }

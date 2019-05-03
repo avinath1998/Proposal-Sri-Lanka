@@ -12,7 +12,7 @@ class MatchesTab extends StatefulWidget {
 class _MatchesTabState extends State<MatchesTab> {
   @override
   void initState() {
-    BlocProvider.of<FetchedMatchedUsersBloc>(context).loadData(false);
+    BlocProvider.of<FetchedMatchedUsersBloc>(context).loadData();
     super.initState();
   }
 
@@ -25,8 +25,10 @@ class _MatchesTabState extends State<MatchesTab> {
         if (state is FetchMatchedUsersStateSuccess) {
           List<ProposalUser> matchedUsers = state.matches;
           return _buildList(matchedUsers);
-        } else if (state is FetchNextMatchedUsersStateSuccess) {
         } else if (state is FetchMatchUsersErrorState) {
+          return (Center(
+            child: Text("Error"),
+          ));
         } else if (state is InitialFetchedMatchedUsersState) {
           return Center(
             child: CircularProgressIndicator(
@@ -41,7 +43,9 @@ class _MatchesTabState extends State<MatchesTab> {
   Widget _buildList(List<ProposalUser> matchedUsers) {
     return ListView.builder(
       itemBuilder: (context, index) {
-        return Text(matchedUsers[index].firstName);
+        if (index == matchedUsers.length - 1)
+          BlocProvider.of<FetchedMatchedUsersBloc>(context).loadData();
+        return LargeTimelineProfileView();
       },
       itemCount: matchedUsers.length,
     );
