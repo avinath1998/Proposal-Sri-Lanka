@@ -9,12 +9,15 @@ abstract class DB {
       {Map<String, dynamic> query, ProposalUser lastFetchedUser});
   Future<List<ProposalUser>> fetchRequestees(String currentUserId);
   Future<void> setCurrentUserSetting(CurrentUser user);
-  Future<void> sendRequestToProposalUser(CurrentUser user, String toUserId);
+  Future<String> sendRequestToProposalUser(
+      CurrentUser user, ProposalUser toUserId);
   Future<void> acceptRequestFromProposalUser(CurrentUser user, String toUserId);
   Future<void> declineRequestFromProposalUser(
       CurrentUser user, String toUserId);
   Future<void> saveProposalUser(CurrentUser user, String toUserId);
   Future<void> removeSavedProposalUser(CurrentUser user, String toUserId);
+  Future<bool> hasProposalUserContactBeenRequested(
+      CurrentUser currentUser, ProposalUser user);
   void printVersion();
 }
 
@@ -56,12 +59,6 @@ class FirestoreDB extends DB {
   @override
   Future<void> saveProposalUser(CurrentUser user, String toUserId) {
     // TODO: implement saveProposalUser
-    return null;
-  }
-
-  @override
-  Future<void> sendRequestToProposalUser(CurrentUser user, String toUserId) {
-    // TODO: implement sendRequestToProposalUser
     return null;
   }
 
@@ -219,5 +216,24 @@ class FirestoreDB extends DB {
     DocumentSnapshot dc = await db.collection("Users").document(id).get();
     CurrentUser user = CurrentUser.fromMap(dc.data, dc.documentID);
     return user;
+  }
+
+  @override
+  Future<bool> hasProposalUserContactBeenRequested(
+      CurrentUser currentUser, ProposalUser user) async {
+    DocumentSnapshot sp = await db
+        .collection("Users")
+        .document(currentUser.id)
+        .collection("requestedContacts")
+        .document(user.id)
+        .get();
+    return sp.exists;
+  }
+
+  @override
+  Future<String> sendRequestToProposalUser(
+      CurrentUser user, ProposalUser toUserId) {
+    // TODO: implement sendRequestToProposalUser
+    return null;
   }
 }

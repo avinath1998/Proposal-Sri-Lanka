@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
     _tabController.dispose();
     _pageController.dispose();
+    BlocProvider.of<AppbarBloc>(context).dispose();
   }
 
   @override

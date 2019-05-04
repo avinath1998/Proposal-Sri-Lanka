@@ -8,6 +8,10 @@ class User {
   int creationTime;
 
   User(this.id);
+
+  int getUserAge() {
+    return ((DateTime.now().difference(dob)).inDays / 365).truncate();
+  }
 }
 
 class ProposalUser extends User {
@@ -20,6 +24,7 @@ class ProposalUser extends User {
   String regilion;
   String maritalStatusPref;
   String thumbnail;
+  String profilePic;
   String desc;
   String interestIn;
   String email;
@@ -27,6 +32,8 @@ class ProposalUser extends User {
   int lastModified;
   List<dynamic> images;
   bool isMatch;
+  bool isContactRequested;
+  bool hasContactAcceptedContactRequest;
 
   ProposalUser(String id) : super(id);
 
@@ -39,6 +46,7 @@ class ProposalUser extends User {
     user.thumbnail = data['thumbnail'];
     user.creationTime = data['creationTime'];
     data['job'] != null ? user.job = data['job'] : null;
+    data['profilePic'] != null ? user.job = data['profilePic'] : null;
     data['religion'] != null ? user.regilion = data['religion'] : null;
     data['desc'] != null ? user.desc = data['desc'] : null;
     data['interestIn'] != null ? user.interestIn = data['interestIn'] : null;

@@ -21,6 +21,17 @@ class ProposalDataRepository {
     database = FirestoreDB();
   }
 
+  Future<String> requestAContact(
+      ProposalUser user, CurrentUser currentUser) async {
+    print("$_tag Requesting a Contact: ${user.id} to ${currentUser.id}");
+    try {
+      return await database.sendRequestToProposalUser(currentUser, user);
+    } catch (e) {
+      print("$_tag ${e.toString()}");
+      throw DataFetchException(e.toString());
+    }
+  }
+
   Future<CurrentUser> fetchCurrentUser(String id) async {
     print("Fetching Current User");
     try {
@@ -60,6 +71,10 @@ class ProposalDataRepository {
         print("$_tag Added: " + user.firstName);
       });
 
+      users.forEach((userToCheck) async {
+        userToCheck.isContactRequested = await database
+            .hasProposalUserContactBeenRequested(user, userToCheck);
+      });
       return _fetchedUsers.where((user) => user.isMatch).toList();
     } catch (e) {
       throw DataFetchException(e.toString());

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:proposal/blocs/auth/auth_bloc.dart';
 import 'package:proposal/blocs/fetched_matched_users/fetched_matched_users_bloc.dart';
 import 'package:proposal/blocs/fetched_matched_users/fetched_matched_users_state.dart';
+import 'package:proposal/blocs/profile/profile.dart';
 import 'package:proposal/models/user.dart';
+import 'package:proposal/data/repository/proposal_data_repository.dart';
+import 'package:proposal/widgets/large_timeline_profile_view.dart';
 
 class MatchesTab extends StatefulWidget {
   @override
@@ -45,7 +49,13 @@ class _MatchesTabState extends State<MatchesTab> {
       itemBuilder: (context, index) {
         if (index == matchedUsers.length - 1)
           BlocProvider.of<FetchedMatchedUsersBloc>(context).loadData();
-        return LargeTimelineProfileView();
+        var context2 = context;
+        return BlocProvider(
+            bloc: ProfileBloc(
+                matchedUsers[index],
+                BlocProvider.of<AuthBloc>(context2).currentUser,
+                ProposalDataRepository.get()),
+            child: LargeTimelineProfileView());
       },
       itemCount: matchedUsers.length,
     );
