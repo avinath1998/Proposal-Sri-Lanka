@@ -12,6 +12,15 @@ class User {
   int getUserAge() {
     return ((DateTime.now().difference(dob)).inDays / 365).truncate();
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is User) {
+      return this.id == other.id;
+    } else {
+      return false;
+    }
+  }
 }
 
 class ProposalUser extends User {

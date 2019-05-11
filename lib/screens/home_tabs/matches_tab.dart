@@ -16,7 +16,6 @@ class MatchesTab extends StatefulWidget {
 class _MatchesTabState extends State<MatchesTab> {
   @override
   void initState() {
-    BlocProvider.of<FetchedMatchedUsersBloc>(context).loadData();
     super.initState();
   }
 
@@ -28,16 +27,16 @@ class _MatchesTabState extends State<MatchesTab> {
         print(state.toString());
         if (state is FetchMatchedUsersStateSuccess) {
           List<ProposalUser> matchedUsers = state.matches;
+          print('building list ${matchedUsers.length}');
           return _buildList(matchedUsers);
         } else if (state is FetchMatchUsersErrorState) {
           return (Center(
             child: Text("Error"),
           ));
         } else if (state is InitialFetchedMatchedUsersState) {
+          BlocProvider.of<FetchedMatchedUsersBloc>(context).loadData();
           return Center(
-            child: CircularProgressIndicator(
-              backgroundColor: Colors.pink,
-            ),
+            child: CircularProgressIndicator(),
           );
         }
       },
@@ -47,15 +46,29 @@ class _MatchesTabState extends State<MatchesTab> {
   Widget _buildList(List<ProposalUser> matchedUsers) {
     return ListView.builder(
       itemBuilder: (context, index) {
-        if (index == matchedUsers.length - 1)
+        if (index == matchedUsers.length - 1) {
           BlocProvider.of<FetchedMatchedUsersBloc>(context).loadData();
-        var context2 = context;
-        return BlocProvider(
-            bloc: ProfileBloc(
-                matchedUsers[index],
-                BlocProvider.of<AuthBloc>(context2).currentUser,
-                ProposalDataRepository.get()),
-            child: LargeTimelineProfileView());
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              LargeTimelineProfileView(
+                  user: matchedUsers[index],
+                  currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
+                  dataRepository: ProposalDataRepository.get()),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 0.0),
+                  child: LinearProgressIndicator(),
+                ),
+              )
+            ],
+          );
+        } else {
+          return LargeTimelineProfileView(
+              user: matchedUsers[index],
+              currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
+              dataRepository: ProposalDataRepository.get());
+        }
       },
       itemCount: matchedUsers.length,
     );

@@ -42,7 +42,6 @@ class ProposalDataRepository {
     }
   }
 
-  //Change this, the null will return first.
   Future<List<ProposalUser>> fetchMatchedUsers(CurrentUser user) async {
     print("$_tag fetching matched users");
     try {
@@ -65,16 +64,19 @@ class ProposalDataRepository {
         _lastFetchedMatchedUser = users[users.length - 1];
       }
 
-      users.forEach((user) {
-        user.isMatch = true;
-        _fetchedUsers.add(user);
-        print("$_tag Added: " + user.firstName);
-      });
+      for (ProposalUser userToAdd in users) {
+        if (!_fetchedUsers.contains(userToAdd)) {
+          userToAdd.isMatch = true;
 
-      users.forEach((userToCheck) async {
-        userToCheck.isContactRequested = await database
-            .hasProposalUserContactBeenRequested(user, userToCheck);
-      });
+          userToAdd.isContactRequested = await database
+              .hasProposalUserContactBeenRequested(user, userToAdd);
+
+          _fetchedUsers.add(userToAdd);
+          print("$_tag Added: " + userToAdd.firstName);
+        } else {
+          print("$_tag Already in array: " + userToAdd.firstName);
+        }
+      }
       return _fetchedUsers.where((user) => user.isMatch).toList();
     } catch (e) {
       throw DataFetchException(e.toString());

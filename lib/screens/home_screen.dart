@@ -22,8 +22,14 @@ class _HomeScreenState extends State<HomeScreen>
   int _tabCurrentIndex;
 
   FetchedMatchedUsersBloc fetchedMatchedUsersBloc;
+
   TabController _tabController;
   PageController _pageController;
+
+  MatchesTab _matchesTab;
+  ExploreTab _exploreTab;
+  RequestsTab _requestsTab;
+  MeTab _meTab;
 
   @override
   void initState() {
@@ -34,7 +40,13 @@ class _HomeScreenState extends State<HomeScreen>
         BlocProvider.of<AuthBloc>(context).currentUser);
     _tabController = new TabController(length: 4, initialIndex: 0, vsync: this);
     _tabController.addListener(setHomePage);
-    _pageController = new PageController();
+
+    _pageController = new PageController(keepPage: true);
+
+    _matchesTab = new MatchesTab();
+    _exploreTab = new ExploreTab();
+    _requestsTab = new RequestsTab();
+    _meTab = new MeTab();
   }
 
   @override
@@ -43,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen>
     _tabController.dispose();
     _pageController.dispose();
     BlocProvider.of<AppbarBloc>(context).dispose();
+    fetchedMatchedUsersBloc.dispose();
   }
 
   @override
@@ -62,12 +75,7 @@ class _HomeScreenState extends State<HomeScreen>
             onPageChanged: (int index) {
               _setAppBarTitle(index);
             },
-            children: <Widget>[
-              MatchesTab(),
-              ExploreTab(),
-              RequestsTab(),
-              MeTab()
-            ],
+            children: <Widget>[_matchesTab, _exploreTab, _requestsTab, _meTab],
           ),
         ),
         bottomNavigationBar: _buildBottomNavigationBar());
