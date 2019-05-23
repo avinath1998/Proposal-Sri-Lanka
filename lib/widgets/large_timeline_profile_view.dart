@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_advanced_networkimage/provider.dart';
+import 'package:flutter_advanced_networkimage/transition.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:proposal/blocs/profile/profile_bloc.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:proposal/blocs/profile/profile_state.dart';
 import 'package:proposal/data/repository/proposal_data_repository.dart';
 import 'package:proposal/models/user.dart';
@@ -72,11 +73,10 @@ class _LargeTimelineProfileViewState extends State<LargeTimelineProfileView> {
           child: Stack(
             alignment: Alignment.center,
             children: <Widget>[
-              CachedNetworkImage(
-                imageUrl: user.thumbnail,
-                placeholder: (context, state) {
-                  return CircularProgressIndicator();
-                },
+              TransitionToImage(
+                image: AdvancedNetworkImage(user.thumbnail,
+                    cacheRule: CacheRule(maxAge: const Duration(days: 7))),
+                placeholder: CircularProgressIndicator(),
               ),
             ],
           ),

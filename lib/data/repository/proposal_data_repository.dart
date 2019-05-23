@@ -68,8 +68,8 @@ class ProposalDataRepository {
         if (!_fetchedUsers.contains(userToAdd)) {
           userToAdd.isMatch = true;
 
-          userToAdd.isContactRequested = await database
-              .hasProposalUserContactBeenRequested(user, userToAdd);
+          // userToAdd.isContactRequested = await database
+          //     .hasProposalUserContactBeenRequested(user, userToAdd);
 
           _fetchedUsers.add(userToAdd);
           print("$_tag Added: " + userToAdd.firstName);

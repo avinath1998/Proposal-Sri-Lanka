@@ -8,6 +8,8 @@ import 'package:proposal/models/user.dart';
 import 'package:proposal/data/repository/proposal_data_repository.dart';
 import 'package:proposal/widgets/large_timeline_profile_view.dart';
 
+import '../proposal_user_profile_screen.dart';
+
 class MatchesTab extends StatefulWidget {
   @override
   _MatchesTabState createState() => _MatchesTabState();
@@ -64,10 +66,23 @@ class _MatchesTabState extends State<MatchesTab> {
             ],
           );
         } else {
-          return LargeTimelineProfileView(
-              user: matchedUsers[index],
-              currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
-              dataRepository: ProposalDataRepository.get());
+          return InkWell(
+            onTap: () {
+              User currentUser = BlocProvider.of<AuthBloc>(context).currentUser;
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ProsposalUserProfileScreen(
+                            userToShow: matchedUsers[index],
+                            currentUser: currentUser,
+                            dataRepository: ProposalDataRepository.get(),
+                          )));
+            },
+            child: LargeTimelineProfileView(
+                user: matchedUsers[index],
+                currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
+                dataRepository: ProposalDataRepository.get()),
+          );
         }
       },
       itemCount: matchedUsers.length,
