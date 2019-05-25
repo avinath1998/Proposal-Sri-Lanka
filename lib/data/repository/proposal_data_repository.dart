@@ -21,11 +21,18 @@ class ProposalDataRepository {
     database = FirestoreDB();
   }
 
-  Future<String> requestAContact(
-      ProposalUser user, CurrentUser currentUser) async {
+  Future<ProposalUser> requestAContact(
+      ProposalUser user, CurrentUser currentUser, bool requesting) async {
     print("$_tag Requesting a Contact: ${user.id} to ${currentUser.id}");
     try {
-      return await database.sendRequestToProposalUser(currentUser, user);
+      await database.sendRequestToProposalUser(currentUser, user, requesting);
+      user.isContactRequested = requesting;
+      _fetchedUsers.forEach((forUser) {
+        if (forUser.id == user.id) {
+          forUser.isContactRequested = requesting;
+        }
+      });
+      return user;
     } catch (e) {
       print("$_tag ${e.toString()}");
       throw DataFetchException(e.toString());
@@ -39,6 +46,31 @@ class ProposalDataRepository {
       return user;
     } catch (e) {
       throw DataFetchException(e.toString());
+    }
+  }
+
+  Future<ProposalUser> fetchProposalUserInFullDetails(
+      CurrentUser user, ProposalUser userToFetch) async {
+    print("Fetching Proposal User in Full Details");
+    if (userToFetch.hasUserBeenFetchedInFull) {
+      print(
+          "Proposal user: ${userToFetch.firstName} has already been fetched in full.");
+      return userToFetch;
+    } else {
+      print(
+          "Proposal user: ${userToFetch.firstName} will be fetched in full.....");
+      //for now, the only thing extra needed to get the details for the user in full
+      //is if the user has sent a contact request to the proposal user.
+      try {
+        bool isRequested = await database.hasProposalUserContactBeenRequested(
+            user, userToFetch);
+        userToFetch.isContactRequested = isRequested;
+        _fetchedUsers.remove(userToFetch);
+        _fetchedUsers.add(userToFetch);
+        return userToFetch;
+      } catch (e) {
+        throw DataFetchException(e.toString());
+      }
     }
   }
 

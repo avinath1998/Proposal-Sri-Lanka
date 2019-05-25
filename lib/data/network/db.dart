@@ -1,4 +1,5 @@
 import 'package:proposal/exceptions/data_fetch_exception.dart';
+import 'package:proposal/models/contact_request.dart';
 import 'package:proposal/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -9,8 +10,8 @@ abstract class DB {
       {Map<String, dynamic> query, ProposalUser lastFetchedUser});
   Future<List<ProposalUser>> fetchRequestees(String currentUserId);
   Future<void> setCurrentUserSetting(CurrentUser user);
-  Future<String> sendRequestToProposalUser(
-      CurrentUser user, ProposalUser toUserId);
+  Future<void> sendRequestToProposalUser(
+      CurrentUser user, ProposalUser toUserId, bool requesting);
   Future<void> acceptRequestFromProposalUser(CurrentUser user, String toUserId);
   Future<void> declineRequestFromProposalUser(
       CurrentUser user, String toUserId);
@@ -46,7 +47,6 @@ class FirestoreDB extends DB {
 
   @override
   Future<ProposalUser> fetchUser(String userId) {
-    // TODO: implement fetchUser
     return null;
   }
 
@@ -231,9 +231,22 @@ class FirestoreDB extends DB {
   }
 
   @override
-  Future<String> sendRequestToProposalUser(
-      CurrentUser user, ProposalUser toUserId) {
-    // TODO: implement sendRequestToProposalUser
+  Future<void> sendRequestToProposalUser(
+      CurrentUser user, ProposalUser toUserId, bool requesting) {
+    final DocumentReference postRef = db
+        .collection('Users')
+        .document(user.id)
+        .collection("contactRequests")
+        .document(user.id);
+    if (requesting) {
+      ContactRequest request = new ContactRequest();
+      request.hasReceiverAccepted = false;
+      request.senderId = user.id;
+      request.receiverId = toUserId.id;
+      postRef.setData(request.toMap());
+    } else {
+      postRef.delete();
+    }
     return null;
   }
 }

@@ -43,6 +43,7 @@ class ProposalUser extends User {
   bool isMatch;
   bool isContactRequested;
   bool hasContactAcceptedContactRequest;
+  bool hasUserBeenFetchedInFull;
 
   ProposalUser(String id) : super(id);
 
@@ -79,6 +80,7 @@ class ProposalUser extends User {
         ? user.lastModified = data['lastModified']
         : null;
     data['phoneNumber'] != null ? user.phoneNum = data['phoneNumber'] : null;
+    user.hasUserBeenFetchedInFull = false;
     return user;
   }
 }

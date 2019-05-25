@@ -6,15 +6,15 @@ import 'package:proposal/data/repository/proposal_data_repository.dart';
 import 'package:proposal/exceptions/data_fetch_exception.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  final ProposalUser proposalUser;
+  ProposalUser proposalUser;
   final CurrentUser currentUser;
   final ProposalDataRepository dataRepository;
   final String _tag = "ProfileBloc: ";
 
   ProfileBloc(this.proposalUser, this.currentUser, this.dataRepository);
 
-  void requestAUsersContact() {
-    dispatch(RequestContactEvent());
+  void requestProposalUserFullDetails() {
+    dispatch(FetchContactFullDetails());
   }
 
   @override
@@ -24,25 +24,33 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Stream<ProfileState> mapEventToState(
     ProfileEvent event,
   ) async* {
-    if (event is RequestContactEvent) {
-      yield* _sendContactRequest();
-    } else if (event is RequestedContactEvent) {
-      yield (RequestedContactState());
-    } else if (event is RequestingContactErrorEvent) {
-      yield (RequestingContactErrorState(event.errorMsg));
-    } else if (event is NoRequestedContactEvent) {
-      yield (NoRequestedContactState());
+    if (event is FetchContactFullDetails) {
+      yield* _fetchContactDetailsInFull();
+    } else if (event is FetchingContactDetailsError) {
+      yield FetchingFullDetailsState();
+    } else if (event is FetchingContactDetailsError) {
+      yield ErrorFetchingFullDetailsState(event.errorMsg);
     }
   }
 
-  Stream<ProfileState> _sendContactRequest() async* {
+  Stream<ProfileState> _fetchContactDetailsInFull() async* {
     try {
-      String id =
-          await dataRepository.requestAContact(proposalUser, currentUser);
-      if (id != null && id.isNotEmpty) {}
+      proposalUser = await dataRepository.fetchProposalUserInFullDetails(
+          currentUser, proposalUser);
+      yield SuccessFetchingFullDetailsState();
     } on DataFetchException catch (e) {
-      print("$_tag ${e.message}");
-      yield (RequestingContactErrorState(e.toString()));
+      yield (ErrorFetchingFullDetailsState(e.toString()));
     }
   }
+
+  // Stream<ProfileState> _sendContactRequest() async* {
+  //   try {
+  //     String id =
+  //         await dataRepository.requestAContact(proposalUser, currentUser);
+  //     if (id != null && id.isNotEmpty) {}
+  //   } on DataFetchException catch (e) {
+  //     print("$_tag ${e.message}");
+  //     yield (RequestingContactErrorState(e.toString()));
+  //   }
+  // }
 }

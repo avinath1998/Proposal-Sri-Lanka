@@ -53,10 +53,24 @@ class _MatchesTabState extends State<MatchesTab> {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              LargeTimelineProfileView(
-                  user: matchedUsers[index],
-                  currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
-                  dataRepository: ProposalDataRepository.get()),
+              InkWell(
+                onTap: () {
+                  User currentUser =
+                      BlocProvider.of<AuthBloc>(context).currentUser;
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ProsposalUserProfileScreen(
+                                userToShow: matchedUsers[index],
+                                currentUser: currentUser,
+                                dataRepository: ProposalDataRepository.get(),
+                              )));
+                },
+                child: LargeTimelineProfileView(
+                    user: matchedUsers[index],
+                    currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
+                    dataRepository: ProposalDataRepository.get()),
+              ),
               Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 0.0),
@@ -78,10 +92,13 @@ class _MatchesTabState extends State<MatchesTab> {
                             dataRepository: ProposalDataRepository.get(),
                           )));
             },
-            child: LargeTimelineProfileView(
-                user: matchedUsers[index],
-                currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
-                dataRepository: ProposalDataRepository.get()),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 10.0),
+              child: LargeTimelineProfileView(
+                  user: matchedUsers[index],
+                  currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
+                  dataRepository: ProposalDataRepository.get()),
+            ),
           );
         }
       },

@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'Proposal',
       theme: ThemeData(
           primarySwatch: Colors.pink,
-          accentColor: Colors.pink,
+          accentColor: Colors.blue,
           textTheme: TextTheme()),
       home: BlocProvider(bloc: _authBloc, child: RootScreen()),
     );

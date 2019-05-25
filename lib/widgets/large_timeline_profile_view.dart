@@ -22,45 +22,20 @@ class LargeTimelineProfileView extends StatefulWidget {
 }
 
 class _LargeTimelineProfileViewState extends State<LargeTimelineProfileView> {
-  ProfileBloc _profileBloc;
-
   @override
   void initState() {
     super.initState();
-    _profileBloc =
-        new ProfileBloc(widget.user, widget.currentUser, widget.dataRepository);
   }
 
   @override
   void dispose() {
     super.dispose();
-    _profileBloc.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     ProposalUser user = widget.user;
-    return BlocProvider(
-      bloc: _profileBloc,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10.0),
-        child: BlocBuilder(
-            bloc: _profileBloc,
-            builder: (context, ProfileState state) {
-              if (state is InitialProfileState) {
-                return _buildContainer(user: user, isRequesting: false);
-              } else if (state is RequestingContactState) {
-                return _buildContainer(user: user, isRequesting: true);
-              } else if (state is RequestedContactState) {
-                return _buildContainer(user: user, isRequesting: false);
-              } else if (state is NoRequestedContactState) {
-                return _buildContainer(user: user, isRequesting: false);
-              } else if (state is RequestingContactErrorState) {
-                return _buildContainer(user: user, isRequesting: false);
-              }
-            }),
-      ),
-    );
+    return _buildContainer(user: user, isRequesting: false);
   }
 
   Widget _buildContainer(
@@ -74,6 +49,7 @@ class _LargeTimelineProfileViewState extends State<LargeTimelineProfileView> {
             alignment: Alignment.center,
             children: <Widget>[
               TransitionToImage(
+                borderRadius: BorderRadius.all(Radius.circular(20.0)),
                 image: AdvancedNetworkImage(user.thumbnail,
                     cacheRule: CacheRule(maxAge: const Duration(days: 7))),
                 placeholder: CircularProgressIndicator(),

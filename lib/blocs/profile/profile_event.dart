@@ -3,14 +3,12 @@ import 'package:meta/meta.dart';
 @immutable
 abstract class ProfileEvent {}
 
-class RequestContactEvent extends ProfileEvent {}
+class FetchContactFullDetails extends ProfileEvent {}
 
-class RequestedContactEvent extends ProfileEvent {}
+class FetchedContactFullDetails extends ProfileEvent {}
 
-class NoRequestedContactEvent extends ProfileEvent {}
-
-class RequestingContactErrorEvent extends ProfileEvent {
+class FetchingContactDetailsError extends ProfileEvent {
   final String errorMsg;
 
-  RequestingContactErrorEvent(this.errorMsg);
+  FetchingContactDetailsError(this.errorMsg);
 }
