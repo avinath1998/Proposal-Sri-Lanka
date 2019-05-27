@@ -49,8 +49,7 @@ class _LargeTimelineProfileViewState extends State<LargeTimelineProfileView> {
             alignment: Alignment.center,
             children: <Widget>[
               TransitionToImage(
-                borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                image: AdvancedNetworkImage(user.thumbnail,
+                image: AdvancedNetworkImage(user.profilePic,
                     cacheRule: CacheRule(maxAge: const Duration(days: 7))),
                 placeholder: CircularProgressIndicator(),
               ),

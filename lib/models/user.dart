@@ -47,16 +47,42 @@ class ProposalUser extends User {
 
   ProposalUser(String id) : super(id);
 
+  static Map<String, dynamic> toMap(ProposalUser user) {
+    Map<String, dynamic> map = new Map();
+    map['firstName'] = user.firstName;
+    map['lastName'] = user.lastName;
+    map['city'] = user.city;
+    map['dob'] = user.dob;
+    map['profilePic'] = user.profilePic;
+    map['religion'] = user.regilion;
+    map['desc'] = user.desc;
+    map['interestIn'] = user.interestIn;
+    map['images'] = user.images;
+    map['thumbnail'] = user.thumbnail;
+    map['degree'] = user.degree;
+    map['school'] = user.school;
+    map['email'] = user.email;
+    map['gender'] = user.gender;
+    map['prefGender'] = user.prefGender;
+    map['maritalStatus'] = user.maritalStatus;
+    map['maritalStatusPref'] = user.maritalStatusPref;
+    map['nativeLanguage'] = user.nativeLanguage;
+    map['lastModified'] = user.lastModified;
+    map['creationTime'] = user.creationTime;
+
+    map['phoneNumber'] = user.phoneNum;
+    return map;
+  }
+
   static User fromMap(Map<String, dynamic> data, String id) {
     ProposalUser user = new ProposalUser(id);
     user.firstName = data['firstName'];
     user.lastName = data['lastName'];
     user.city = data['city'];
     user.dob = data['dob'];
-    user.thumbnail = data['thumbnail'];
     user.creationTime = data['creationTime'];
     data['job'] != null ? user.job = data['job'] : null;
-    data['profilePic'] != null ? user.job = data['profilePic'] : null;
+    data['profilePic'] != null ? user.profilePic = data['profilePic'] : null;
     data['religion'] != null ? user.regilion = data['religion'] : null;
     data['desc'] != null ? user.desc = data['desc'] : null;
     data['interestIn'] != null ? user.interestIn = data['interestIn'] : null;

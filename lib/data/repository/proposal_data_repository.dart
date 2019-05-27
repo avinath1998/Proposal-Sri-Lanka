@@ -19,6 +19,7 @@ class ProposalDataRepository {
 
   ProposalDataRepository._internal() {
     database = FirestoreDB();
+    database.init();
   }
 
   Future<ProposalUser> requestAContact(
@@ -65,6 +66,7 @@ class ProposalDataRepository {
         bool isRequested = await database.hasProposalUserContactBeenRequested(
             user, userToFetch);
         userToFetch.isContactRequested = isRequested;
+        userToFetch.hasUserBeenFetchedInFull = true;
         _fetchedUsers.remove(userToFetch);
         _fetchedUsers.add(userToFetch);
         return userToFetch;
@@ -74,21 +76,23 @@ class ProposalDataRepository {
     }
   }
 
-  Future<List<ProposalUser>> fetchMatchedUsers(CurrentUser user) async {
+  Future<List<ProposalUser>> fetchMatchedUsers(CurrentUser currentUser) async {
     print("$_tag fetching matched users");
     try {
       List<ProposalUser> users = new List();
       if (_lastFetchedMatchedUser == null) {
         print("$_tag fetching initial set of matched users");
         users = await database.fetchUsers(query: {
-          'religion': user.regilion,
-          'nativeLanguage': user.nativeLanguage
+          'religion': currentUser.regilion,
+          'nativeLanguage': currentUser.nativeLanguage
         });
+        print(currentUser.regilion);
+        print(currentUser.nativeLanguage);
       } else {
         print("$_tag fetching next set of matched users");
         users = await database.fetchUsers(query: {
-          'religion': user.regilion,
-          'nativeLanguage': user.nativeLanguage
+          'religion': currentUser.regilion,
+          'nativeLanguage': currentUser.nativeLanguage
         }, lastFetchedUser: _lastFetchedMatchedUser);
       }
 
@@ -97,16 +101,18 @@ class ProposalDataRepository {
       }
 
       for (ProposalUser userToAdd in users) {
-        if (!_fetchedUsers.contains(userToAdd)) {
-          userToAdd.isMatch = true;
+        if (userToAdd.id != currentUser.id) {
+          if (!_fetchedUsers.contains(userToAdd)) {
+            userToAdd.isMatch = true;
 
-          // userToAdd.isContactRequested = await database
-          //     .hasProposalUserContactBeenRequested(user, userToAdd);
+            // userToAdd.isContactRequested = await database
+            //     .hasProposalUserContactBeenRequested(user, userToAdd);
 
-          _fetchedUsers.add(userToAdd);
-          print("$_tag Added: " + userToAdd.firstName);
-        } else {
-          print("$_tag Already in array: " + userToAdd.firstName);
+            _fetchedUsers.add(userToAdd);
+            print("$_tag Added: " + userToAdd.firstName);
+          } else {
+            print("$_tag Already in array: " + userToAdd.firstName);
+          }
         }
       }
       return _fetchedUsers.where((user) => user.isMatch).toList();

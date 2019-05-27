@@ -29,9 +29,20 @@ class _RootScreenState extends State<RootScreen> {
         } else if (state is SignedOutState) {
           return SignInScreen();
         } else if (state is SigningInErrorState) {
+          return Container(
+            child: Scaffold(
+              body: Center(
+                child: Text("An error has occured, try again later."),
+              ),
+            ),
+          );
         } else if (state is SigningOutErrorState) {}
         return Container(
-          child: Text("Auth Error"),
+          child: Scaffold(
+            body: Center(
+              child: Text("An error has occured, try again later."),
+            ),
+          ),
         );
       },
     );

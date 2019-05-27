@@ -4,6 +4,7 @@ import 'package:proposal/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 abstract class DB {
+  void init();
   Future<CurrentUser> fetchCurrentUser(String id);
   Future<ProposalUser> fetchUser(String userId);
   Future<List<ProposalUser>> fetchUsers(
@@ -24,6 +25,14 @@ abstract class DB {
 
 class FirestoreDB extends DB {
   final Firestore db = Firestore.instance;
+
+  @override
+  void init() async {
+    await Firestore.instance.settings(
+      persistenceEnabled: false,
+      timestampsInSnapshotsEnabled: true,
+    );
+  }
 
   @override
   Future<void> acceptRequestFromProposalUser(
@@ -74,13 +83,16 @@ class FirestoreDB extends DB {
     List<ProposalUser> users = List();
     Query firestoreQuery =
         buildFirestoreUserFetchQueryFromMap(query, lastFetchedUser);
+    print(firestoreQuery.buildArguments().toString());
     QuerySnapshot ref = await firestoreQuery.getDocuments();
+
     if (ref.documents.length > 0) {
       ref.documents.forEach((dc) {
         ProposalUser user = ProposalUser.fromMap(dc.data, dc.documentID);
         users.add(user);
       });
     }
+    print("Users: ${users.length}");
     return users;
   }
 
@@ -90,13 +102,13 @@ class FirestoreDB extends DB {
     var _isCurrentQueryInvolveDate = false;
     query = Firestore.instance.collection('Users');
     if (map != null) {
-      if (map.containsKey("Gender")) {
+      if (map.containsKey("gender")) {
         query = query.where('gender', isEqualTo: map['Gender']);
       }
-      if (map.containsKey('District')) {
+      if (map.containsKey('district')) {
         query = query.where('city', isEqualTo: map['city']);
       }
-      if (map.containsKey('Age')) {
+      if (map.containsKey('age')) {
         _isCurrentQueryInvolveDate = true;
         DateTime startTime = getStartTime(map['Age']);
         DateTime endTime = getEndTime(map['Age']);
@@ -104,10 +116,10 @@ class FirestoreDB extends DB {
             .where('dob', isGreaterThanOrEqualTo: endTime)
             .where('dob', isLessThanOrEqualTo: startTime);
       }
-      if (map.containsKey('Religion')) {
+      if (map.containsKey('religion')) {
         query = query.where('religion', isEqualTo: map['Religion']);
       }
-      if (map.containsKey('Native Language')) {
+      if (map.containsKey('native Language')) {
         query =
             query.where('nativeLanguage', isEqualTo: map['Native Language']);
       }
@@ -117,7 +129,7 @@ class FirestoreDB extends DB {
       if (map.containsKey('academicDegree')) {
         query = query.where('hasDegree', isEqualTo: true);
       }
-      if (map.containsKey('Marital Status')) {
+      if (map.containsKey('maritalStatus')) {
         if (map['Marital Status'] != 'All')
           query =
               query.where('maritalStatus', isEqualTo: map['Marital Status']);

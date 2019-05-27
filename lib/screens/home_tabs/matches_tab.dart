@@ -93,7 +93,8 @@ class _MatchesTabState extends State<MatchesTab> {
                           )));
             },
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 10.0),
+              margin:
+                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
               child: LargeTimelineProfileView(
                   user: matchedUsers[index],
                   currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
