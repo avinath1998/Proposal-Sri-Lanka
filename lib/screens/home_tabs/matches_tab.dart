@@ -26,7 +26,6 @@ class _MatchesTabState extends State<MatchesTab> {
     return BlocBuilder(
       bloc: BlocProvider.of<FetchedMatchedUsersBloc>(context),
       builder: (context, FetchedMatchedUsersState state) {
-        print(state.toString());
         if (state is FetchMatchedUsersStateSuccess) {
           List<ProposalUser> matchedUsers = state.matches;
           print('building list ${matchedUsers.length}');
@@ -80,26 +79,12 @@ class _MatchesTabState extends State<MatchesTab> {
             ],
           );
         } else {
-          return InkWell(
-            onTap: () {
-              User currentUser = BlocProvider.of<AuthBloc>(context).currentUser;
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ProsposalUserProfileScreen(
-                            userToShow: matchedUsers[index],
-                            currentUser: currentUser,
-                            dataRepository: ProposalDataRepository.get(),
-                          )));
-            },
-            child: Container(
-              margin:
-                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
-              child: LargeTimelineProfileView(
-                  user: matchedUsers[index],
-                  currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
-                  dataRepository: ProposalDataRepository.get()),
-            ),
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+            child: LargeTimelineProfileView(
+                user: matchedUsers[index],
+                currentUser: BlocProvider.of<AuthBloc>(context).currentUser,
+                dataRepository: ProposalDataRepository.get()),
           );
         }
       },

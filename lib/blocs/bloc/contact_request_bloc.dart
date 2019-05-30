@@ -27,7 +27,8 @@ class ContactRequestBloc
     if (event is SendContactRequestEvent) {
       yield* _sendRequest(event.isRequesting);
     } else if (event is SuccessContactingRequestEvnet) {
-      yield ContactRequestSentSuccessState(event.isRequesting);
+      yield ContactRequestSentSuccessState(
+          event.isRequesting, event.hasContactBeenAccepted);
     } else if (event is ErrorContactingRequestEvnet) {
       yield (ContactRequestSentErrorState(event.errorMsg));
     }
@@ -39,7 +40,8 @@ class ContactRequestBloc
       yield (ContactRequestSendingState());
       proposalUser = await dataRepository.requestAContact(
           proposalUser, currentUser, requesting);
-      yield (ContactRequestSentSuccessState(requesting));
+      yield (ContactRequestSentSuccessState(
+          requesting, proposalUser.hasContactAcceptedContactRequest));
     } on DataFetchException catch (e) {
       print(e.toString());
       yield (ContactRequestSentErrorState(e.toString()));

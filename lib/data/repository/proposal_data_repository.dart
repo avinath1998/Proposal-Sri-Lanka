@@ -17,6 +17,8 @@ class ProposalDataRepository {
     return _repo;
   }
 
+  List<ProposalUser> get fetchedUsers => _fetchedUsers;
+
   ProposalDataRepository._internal() {
     database = FirestoreDB();
     database.init();
@@ -65,12 +67,17 @@ class ProposalDataRepository {
       try {
         bool isRequested = await database.hasProposalUserContactBeenRequested(
             user, userToFetch);
+        if (isRequested) {
+          userToFetch.hasContactAcceptedContactRequest = await database
+              .hasProposalUserAcceptedCurrentUserRequest(user, userToFetch);
+        }
         userToFetch.isContactRequested = isRequested;
         userToFetch.hasUserBeenFetchedInFull = true;
         _fetchedUsers.remove(userToFetch);
         _fetchedUsers.add(userToFetch);
         return userToFetch;
       } catch (e) {
+        print(e.toString());
         throw DataFetchException(e.toString());
       }
     }
@@ -105,8 +112,13 @@ class ProposalDataRepository {
           if (!_fetchedUsers.contains(userToAdd)) {
             userToAdd.isMatch = true;
 
-            // userToAdd.isContactRequested = await database
-            //     .hasProposalUserContactBeenRequested(user, userToAdd);
+            userToAdd.isContactRequested = await database
+                .hasProposalUserContactBeenRequested(currentUser, userToAdd);
+            if (userToAdd.isContactRequested) {
+              userToAdd.hasContactAcceptedContactRequest =
+                  await database.hasProposalUserAcceptedCurrentUserRequest(
+                      currentUser, userToAdd);
+            }
 
             _fetchedUsers.add(userToAdd);
             print("$_tag Added: " + userToAdd.firstName);

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class User {
   String id;
   String firstName;
@@ -52,7 +54,7 @@ class ProposalUser extends User {
     map['firstName'] = user.firstName;
     map['lastName'] = user.lastName;
     map['city'] = user.city;
-    map['dob'] = user.dob;
+    map['dob'] = Timestamp.fromDate(user.dob);
     map['profilePic'] = user.profilePic;
     map['religion'] = user.regilion;
     map['desc'] = user.desc;
@@ -79,7 +81,7 @@ class ProposalUser extends User {
     user.firstName = data['firstName'];
     user.lastName = data['lastName'];
     user.city = data['city'];
-    user.dob = data['dob'];
+    user.dob = data['dob'].toDate();
     user.creationTime = data['creationTime'];
     data['job'] != null ? user.job = data['job'] : null;
     data['profilePic'] != null ? user.profilePic = data['profilePic'] : null;
@@ -133,7 +135,7 @@ class CurrentUser extends User {
     user.firstName = data['firstName'];
     user.lastName = data['lastName'];
     user.city = data['city'];
-    user.dob = data['dob'];
+    user.dob = data['dob'].toDate();
     user.thumbnail = data['thumbnail'];
     user.creationTime = data['creationTime'];
     data['job'] != null ? user.job = data['job'] : null;

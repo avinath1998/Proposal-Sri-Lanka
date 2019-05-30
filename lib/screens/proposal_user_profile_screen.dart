@@ -44,8 +44,6 @@ class _ProsposalUserProfileScreenState
     _profileBloc = new ProfileBloc(
         widget.userToShow, widget.currentUser, widget.dataRepository);
     _profileBloc.requestProposalUserFullDetails();
-    _contactRequestBloc = new ContactRequestBloc(
-        widget.userToShow, widget.currentUser, widget.dataRepository);
   }
 
   @override
@@ -53,11 +51,11 @@ class _ProsposalUserProfileScreenState
     super.dispose();
     pageIndexNotifier.dispose();
     _profileBloc.dispose();
-    _contactRequestBloc.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _contactRequestBloc = BlocProvider.of<ContactRequestBloc>(context);
     Size screenSize = MediaQuery.of(context).size;
     return BlocProvider(
       bloc: _profileBloc,
@@ -79,8 +77,6 @@ class _ProsposalUserProfileScreenState
             ],
             backdropTapClosesPanel: true,
             panel: Container(
-              padding:
-                  const EdgeInsets.only(left: 30.0, right: 30.0, top: 15.0),
               child: BlocBuilder(
                 bloc: _profileBloc,
                 builder: (context, ProfileState state) {
@@ -97,6 +93,7 @@ class _ProsposalUserProfileScreenState
                       ),
                     );
                   } else if (state is ErrorFetchingFullDetailsState) {
+                    print(state.errorMsg);
                     return Center(
                       child: Text("An error has occured, try again later :("),
                     );
@@ -181,6 +178,7 @@ class _ProsposalUserProfileScreenState
     return Column(
       children: <Widget>[
         Container(
+            margin: const EdgeInsets.only(top: 10.0),
             alignment: Alignment.center,
             width: 30.0,
             child: Container(
@@ -189,79 +187,102 @@ class _ProsposalUserProfileScreenState
                   color: Colors.black54,
                   borderRadius: BorderRadius.all(Radius.circular(30.0))),
             )),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Container(
-              width: screenSize.width / 1.5,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    "Hi, I'm",
-                    style: TextStyle(fontSize: 20.0),
-                    textAlign: TextAlign.start,
-                  ),
-                  Text(
-                    widget.userToShow.firstName +
-                        " " +
-                        widget.userToShow.lastName,
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
+        Padding(
+          padding: const EdgeInsets.only(
+              left: 5.0, right: 5.0, top: 10.0, bottom: 20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                padding:
+                    const EdgeInsets.only(left: 20.0, right: 20.0, top: 0.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Container(
+                      width: screenSize.width / 2,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            "Hi, I'm",
+                            style: TextStyle(fontSize: 20.0),
+                            textAlign: TextAlign.start,
+                          ),
+                          Text(
+                            widget.userToShow.firstName +
+                                " " +
+                                widget.userToShow.lastName,
+                            style: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.start,
+                          )
+                        ],
+                      ),
                     ),
-                    textAlign: TextAlign.start,
-                  )
-                ],
+                    Container(
+                      child: BlocBuilder(
+                        bloc: _contactRequestBloc,
+                        builder: (context, ContactRequestState state) {
+                          if (state is ContactRequestSentSuccessState) {
+                            return CircularContactButton(
+                              isLiked: state.isRequesting,
+                              hasContactBeenAccepted:
+                                  state.hasRequestBeenAccepted,
+                              onTap: (requesting) {
+                                _contactRequestBloc
+                                    .sendContactRequest(requesting);
+                              },
+                            );
+                          } else if (state is ContactRequestSendingState) {
+                            return CircularContactButton(
+                              child: Text(
+                                "Loading.....",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15.0,
+                                  color: Colors.blueAccent,
+                                ),
+                              ),
+                              onTap: (requesting) {},
+                            );
+                          } else if (state is ContactRequestSentErrorState) {
+                            return CircularContactButton(
+                              isLiked: widget.userToShow.isContactRequested,
+                              onTap: (requesting) {
+                                _contactRequestBloc
+                                    .sendContactRequest(requesting);
+                              },
+                            );
+                          } else {
+                            return CircularContactButton(
+                              isLiked: widget.userToShow.isContactRequested,
+                              hasContactBeenAccepted: widget
+                                  .userToShow.hasContactAcceptedContactRequest,
+                              onTap: (requesting) {
+                                _contactRequestBloc
+                                    .sendContactRequest(requesting);
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-            BlocBuilder(
-              bloc: _contactRequestBloc,
-              builder: (context, ContactRequestState state) {
-                if (state is ContactRequestSentSuccessState) {
-                  return CircularContactButton(
-                    isLiked: state.isRequesting,
-                    onTap: (requesting) {
-                      print("Success");
-                      _contactRequestBloc.sendContactRequest(requesting);
-                    },
-                  );
-                } else if (state is ContactRequestSendingState) {
-                  return CircularContactButton(
-                    child: CircularProgressIndicator(
-                      backgroundColor: Colors.white,
-                    ),
-                    onTap: (requesting) {
-                      print("Sending");
-                    },
-                  );
-                } else if (state is ContactRequestSentErrorState) {
-                  return CircularContactButton(
-                    isLiked: widget.userToShow.isContactRequested,
-                    onTap: (requesting) {
-                      print("Error");
-                      _contactRequestBloc.sendContactRequest(requesting);
-                    },
-                  );
-                } else {
-                  return CircularContactButton(
-                    isLiked: widget.userToShow.isContactRequested,
-                    onTap: (requesting) {
-                      print("default");
-                      _contactRequestBloc.sendContactRequest(requesting);
-                    },
-                  );
-                }
-              },
-            )
-          ],
+            ],
+          ),
+        ),
+        Divider(
+          height: 5.0,
         ),
         Expanded(
           child: Container(
-            width: screenSize.width * 0.9,
-            margin: const EdgeInsets.only(top: 10.0),
             alignment: Alignment.centerLeft,
             child: _buildUserDetails(),
           ),
@@ -306,7 +327,7 @@ class _ProsposalUserProfileScreenState
 
   Widget _getUserDetail(IconData icon, String detail) {
     return Container(
-      margin: const EdgeInsets.all(5.0),
+      margin: const EdgeInsets.only(left: 15.0, right: 15.0, top: 10.0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,

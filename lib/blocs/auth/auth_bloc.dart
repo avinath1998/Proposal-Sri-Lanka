@@ -4,6 +4,7 @@ import 'package:proposal/data/repository/proposal_data_repository.dart';
 import 'package:proposal/models/user.dart';
 import 'package:proposal/services/auth/auth.dart';
 import './auth.dart';
+import 'package:proposal/exceptions/data_fetch_exception.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final Auth auth;
@@ -35,7 +36,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void signIn(String username, String password) async {
     print("$_TAG Signing In");
-    auth.signIn(username, password).then((String val) async {
+    try {
+      String val = await auth.signIn(username, password);
       if (val != null) {
         print("$_TAG Signing in a succes: $val");
         this.currentUserId = val;
@@ -46,11 +48,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         print("$_TAG Signing in failed");
         dispatch(SignOutEvent());
       }
-    }).catchError((error) {
-      print("$_TAG, Error Signing In: ${error.toString()}");
-      this.errorMsg = error.toString();
+    } on DataFetchException catch (e) {
+      print("$_TAG, Error Signing In :<: ${e.message}");
+      this.errorMsg = e.message;
       dispatch(SigningInErrorEvent());
-    });
+    }
   }
 
   void signOut() async {

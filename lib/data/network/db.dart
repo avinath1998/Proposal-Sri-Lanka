@@ -20,6 +20,8 @@ abstract class DB {
   Future<void> removeSavedProposalUser(CurrentUser user, String toUserId);
   Future<bool> hasProposalUserContactBeenRequested(
       CurrentUser currentUser, ProposalUser user);
+  Future<bool> hasProposalUserAcceptedCurrentUserRequest(
+      CurrentUser currentUser, ProposalUser user);
   void printVersion();
 }
 
@@ -27,12 +29,7 @@ class FirestoreDB extends DB {
   final Firestore db = Firestore.instance;
 
   @override
-  void init() async {
-    await Firestore.instance.settings(
-      persistenceEnabled: false,
-      timestampsInSnapshotsEnabled: true,
-    );
-  }
+  void init() async {}
 
   @override
   Future<void> acceptRequestFromProposalUser(
@@ -225,40 +222,92 @@ class FirestoreDB extends DB {
 
   @override
   Future<CurrentUser> fetchCurrentUser(String id) async {
-    DocumentSnapshot dc = await db.collection("Users").document(id).get();
-    CurrentUser user = CurrentUser.fromMap(dc.data, dc.documentID);
-    return user;
+    try {
+      DocumentSnapshot dc = await db.collection("Users").document(id).get();
+      CurrentUser user = CurrentUser.fromMap(dc.data, dc.documentID);
+      return user;
+    } catch (e) {
+      print(e.toString());
+      throw DataFetchException(e.toString());
+    }
   }
 
   @override
   Future<bool> hasProposalUserContactBeenRequested(
       CurrentUser currentUser, ProposalUser user) async {
-    DocumentSnapshot sp = await db
+    QuerySnapshot sp = await db
         .collection("Users")
         .document(currentUser.id)
-        .collection("requestedContacts")
-        .document(user.id)
-        .get();
-    return sp.exists;
+        .collection("contactRequests")
+        .where("receiverId", isEqualTo: user.id)
+        .getDocuments();
+    if (sp != null) {
+      return sp.documents.length != 0;
+    }
+    return false;
   }
 
   @override
   Future<void> sendRequestToProposalUser(
-      CurrentUser user, ProposalUser toUserId, bool requesting) {
-    final DocumentReference postRef = db
-        .collection('Users')
-        .document(user.id)
-        .collection("contactRequests")
-        .document(user.id);
+      CurrentUser user, ProposalUser toUserId, bool requesting) async {
     if (requesting) {
+      final CollectionReference postRef = db
+          .collection('Users')
+          .document(user.id)
+          .collection("contactRequests");
       ContactRequest request = new ContactRequest();
       request.hasReceiverAccepted = false;
       request.senderId = user.id;
       request.receiverId = toUserId.id;
-      postRef.setData(request.toMap());
+      await postRef.add(request.toMap());
     } else {
-      postRef.delete();
+      print("Adding a contact to current user");
+      QuerySnapshot sp = await db
+          .collection('Users')
+          .document(user.id)
+          .collection("contactRequests")
+          .where("receiverId", isEqualTo: toUserId.id)
+          .getDocuments();
+      if (sp.documents.length == 1) {
+        print("Deleting a contact from currentUser requests");
+        String id = sp.documents[0].documentID;
+        await db
+            .collection('Users')
+            .document(user.id)
+            .collection("contactRequests")
+            .document(id)
+            .delete();
+      } else {
+        throw new DataFetchException(
+            "The user has already been added to current users contact request, duplicated references");
+      }
     }
+
+    // final DocumentReference otherUserPostRef = db
+    // .collection("Users")
+    // .document(user.)
     return null;
+  }
+
+  @override
+  Future<bool> hasProposalUserAcceptedCurrentUserRequest(
+      CurrentUser currentUser, ProposalUser user) async {
+    QuerySnapshot sp = await db
+        .collection("Users")
+        .document(currentUser.id)
+        .collection("contactRequests")
+        .where("receiverId", isEqualTo: user.id)
+        .getDocuments();
+
+    if (sp.documents.length == 1) {
+      if (sp.documents[0].data != null) {
+        if (sp.documents[0].data['hasReceiverAccepted'] != null)
+          return sp.documents[0].data['hasReceiverAccepted'];
+      }
+    } else {
+      print(
+          "Multile duplicate user ids found in current users contact requests");
+    }
+    return false;
   }
 }

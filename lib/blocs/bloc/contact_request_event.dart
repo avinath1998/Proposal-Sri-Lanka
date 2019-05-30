@@ -10,7 +10,8 @@ class SendContactRequestEvent extends ContactRequestEvent {
 
 class SuccessContactingRequestEvnet extends ContactRequestEvent {
   final bool isRequesting;
-  SuccessContactingRequestEvnet(this.isRequesting);
+  final bool hasContactBeenAccepted;
+  SuccessContactingRequestEvnet(this.isRequesting, this.hasContactBeenAccepted);
 }
 
 class ErrorContactingRequestEvnet extends ContactRequestEvent {
